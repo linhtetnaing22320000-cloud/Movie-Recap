@@ -4,3 +4,5 @@ ffmpeg-python
 imageio
 imageio-ffmpeg
 numpy
+streamlit
+moviepy
