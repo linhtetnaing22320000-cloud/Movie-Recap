@@ -1,0 +1,6 @@
+gradio
+moviepy
+ffmpeg-python
+imageio
+imageio-ffmpeg
+numpy
