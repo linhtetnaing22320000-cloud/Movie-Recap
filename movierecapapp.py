@@ -2,7 +2,7 @@ import gradio as gr
 import subprocess
 import os
 from moviepy import VideoFileClip
-from moviepy.video.fx import all as vfx
+
 
 
 OUTPUT_FILE = "output.mp4"
