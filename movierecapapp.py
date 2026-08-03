@@ -2,7 +2,6 @@ import streamlit as st
 import os
 import requests
 from moviepy import VideoFileClip, AudioFileClip, vfx
-import moviepy.video.fx as afx  # တစ်ချို့ဗားရှင်းများအတွက်
 
 st.set_page_config(page_title="Movie Recap Video Editor", layout="centered")
 
@@ -14,25 +13,15 @@ uploaded_video = st.file_uploader("1. Movie Recap ဗီဒီယိုဖို
 uploaded_audio = st.file_uploader("3. မြန်မာအသံ AI Voiceover MP3 ဖိုင်ကို တင်ပါ", type=["mp3", "wav"])
 
 # TikTok Guideline အတွက် Blur Option များ
-st.subheader("🛡️ TikTok Community Guideline Protection (Content Filtering)")
+st.subheader("🛡️ TikTok Community Guideline Protection")
 enable_blur = st.checkbox("⚠️ ကြမ်းတမ်းသော ဇာတ်ဝင်ခန်းများ (သွေးထွက်သန်ယိုမှု/လူသတ်ခန်း) ကို Blur လုပ်မည်")
 
-blur_type = "ဗီဒီယို တစ်ခုလုံးကို အနည်းငယ် မှုန်ဝါးစေခြင်း (General Soft Blur)"
-blur_start = 0.0
-blur_end = 0.0
-
+blur_option = "ဗီဒီယို တစ်ခုလုံးကို အနည်းငယ် မှုန်ဝါးစေခြင်း (General Soft Blur)"
 if enable_blur:
     blur_option = st.radio(
         "Blur ပြုလုပ်မည့် ပုံစံကို ရွေးပါ",
-        ("ဗီဒီယို တစ်ခုလုံးကို အနည်းငယ် မှုန်ဝါးစေခြင်း (General Soft Blur)", "သီးသန့် အချိန်ပိုင်းအခြား (Timestamps) အလိုက် Blur လုပ်ခြင်း")
+        ("ဗီဒီယို တစ်ခုလုံးကို အနည်းငယ် မှုန်ဝါးစေခြင်း (General Soft Blur)",)
     )
-    
-    if "သီးသန့် အချိန်ပိုင်းအခြား" in blur_option:
-        col1, col2 = st.columns(2)
-        with col1:
-            blur_start = st.number_input("စတင်မည့် စက္ကန့် (Start Time)", min_value=0.0, value=0.0, step=1.0)
-        with col2:
-            blur_end = st.number_input("ပြီးဆုံးမည့် စက္ကန့် (End Time)", min_value=0.0, value=5.0, step=1.0)
 
 # အသံ အမြန်နှုန်း ညှိရန်
 speed_factor = st.slider("4. Voiceover အသံ အမြန်နှုန်း (ခပ်သွက်သွက်ပြောရန် 1.1x - 1.3x)", 1.0, 1.5, 1.2)
@@ -85,22 +74,15 @@ if uploaded_video is not None and uploaded_audio is not None:
             # မူလ Copyright Effects (Mirror & Resize)
             effects_list = [vfx.MirrorX(), vfx.Resize(width=int(clip.w * 1.05))]
             
-            # Blur Effect ထည့်သွင်းခြင်း
+            # Blur Effect ထည့်သွင်းခြင်း (Error မတက်စေရန် BilateralBlur သို့မဟုတ် အခြားစနစ်ကို သုံးထားသည်)
             if enable_blur:
-                if "ဗီဒီယို တစ်ခုလုံး" in blur_type:
-                    # ဗီဒီယို တစ်ခုလုံးကို Blur မှုန်ဝါးစေရန် (px அளவு ကြီးလေ ပိုမှုန်လေဖြစ်သည်)
+                try:
                     effects_list.append(vfx.GaussianBlur(sigma=2))
-                else:
-                    # အချို့ အပိုင်းများကိုသာ Blur လုပ်လိုပါက (MoviePy တွင် clip ခွဲ၍ effect ထည့်နိုင်သည်)
-                    pass  # လိုအပ်ပါက subclip များခွဲ၍ ပေါင်းနိုင်ပါသည်
+                except AttributeError:
+                    # MoviePy ဗားရှင်းအသစ်များအတွက် Error ကင်းရှင်းစေရန်
+                    effects_list.append(vfx.BilateralBlur(sigma_spatial=2, sigma_color=2))
             
             clip = clip.with_effects(effects_list)
-            
-            # သီးသန့် အချိန်ပိုင်းအခြား Blur အတွက် အခြားနည်းလမ်း (Time-based subclip blur)
-            if enable_blur and "သီးသန့် အချိန်ပိုင်းအခြား" in blur_type and blur_end > blur_start:
-                # ဥပမာ - အစပိုင်း၊ အလယ်ပိုင်း (Blur လုပ်မည့်အပိုင်း)၊ အနောက်ပိုင်း ခွဲထုတ်ခြင်း
-                # ဤနေရာတွင် ရိုးရှင်းစေရန် သတ်မှတ်ထားသော အပိုင်းကို blur effect သီးသန့်ပေးနိုင်သည်
-                pass
             
             status_text.text("အဆင့် 3/4: အသံအမြန်နှုန်း ညှိခြင်းနှင့် တစ်ထပ်တည်း ချိန်ကိုက်နေပါပြီ...")
             progress_bar.progress(70)
@@ -147,6 +129,6 @@ if uploaded_video is not None and uploaded_audio is not None:
                 )
                 
         except Exception as e:
-            progress_bar.progress(100)
-            status_text.text("❌ အမှားအယွင်း ဖြစ်ပေါ်သွားပါသည်။")
-            st.error(f"မှားယွင်းမှု: {e}")
+                progress_bar.progress(100)
+                status_text.text("❌ အမှားအယွင်း ဖြစ်ပေါ်သွားပါသည်။")
+                st.error(f"မှားယွင်းမှု: {e}")
