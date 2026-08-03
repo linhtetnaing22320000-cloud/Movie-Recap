@@ -1,4 +1,4 @@
-import streamlit as st
+            import streamlit as st
 import os
 import requests
 from moviepy import VideoFileClip, AudioFileClip, vfx
@@ -6,15 +6,14 @@ from moviepy import VideoFileClip, AudioFileClip, vfx
 st.set_page_config(page_title="Movie Recap Video Editor", layout="centered")
 
 st.title("🎬 Movie Recap Video & Voiceover Editor")
-st.write("TikTok Unoriginal Content AI လွတ်အောင် အရောင်နှင့် အမြန်နှုန်း ချိန်ညှိပေးသော စနစ်။")
+st.write("TikTok Unoriginal Content AI လွတ်အောင် အမြန်နှုန်းနှင့် Mirror ဖြင့် ချိန်ညှိပေးသော စနစ်။")
 
 # ဖိုင်များ တင်ခိုင်းခြင်း
 uploaded_video = st.file_uploader("1. Movie Recap ဗီဒီယိုဖိုင်ကို တင်ပါ (mp4, mov)", type=["mp4", "mov", "avi"])
 uploaded_audio = st.file_uploader("3. မြန်မာအသံ AI Voiceover MP3 ဖိုင်ကို တင်ပါ", type=["mp3", "wav"])
 
-# AI စစ်ဆေးမှုကို ရှောင်ရှားရန် ထပ်ဆောင်း ဆက်တင်များ
+# AI စစ်ဆေးမှုကို ရှောင်ရှားရန် ဆက်တင်များ
 st.subheader("🛡️ TikTok Unoriginal Content Protection")
-adjust_color = st.checkbox("✨ ဗီဒီယိုအရောင်နှင့် တောက်ပမှုကို အနည်းငယ်ပြောင်းလဲမည် (AI ကျော်ရန်)", value=True)
 video_speed_factor = st.slider("ဗီဒီယို အမြန်နှုန်း (1.02x သို့မဟုတ် 1.05x ထားပါက AI ရှောင်ရန် ပိုကောင်းသည်)", 1.0, 1.1, 1.03)
 
 # အသံ အမြန်နှုန်း ညှိရန်
@@ -65,19 +64,12 @@ if uploaded_video is not None and uploaded_audio is not None:
             status_text.text("အဆင့် 2/4: TikTok AI ရှောင်ရှားရန် ဗီဒီယိုကို ပြုပြင်နေပါပြီ...")
             progress_bar.progress(40)
             
-            # မူလ Copyright Effects (Mirror & Resize) + Video Speed 
-            effects_list = [
+            # MoviePy ဗားရှင်းအသစ်နှင့် ကိုက်ညီသော Copyright & AI Bypass Effects
+            clip = clip.with_effects([
                 vfx.MirrorX(), 
                 vfx.Resize(width=int(clip.w * 1.05)),
-                vfx.MultiplySpeed(video_speed_factor) # ဗီဒီယိုအမြန်နှုန်း အနည်းငယ်တင်ခြင်းဖြင့် AI fingerprint ကို ဖျောက်သည်
-            ]
-            
-            # အရောင်အသွေး အနည်းငယ်ပြောင်းလဲခြင်း (Brightness / Color adjustment)
-            if adjust_color:
-                # ရုပ်ထွက်အရောင်ကို အနည်းငယ်လင်းစေခြင်း သို့မဟုတ် ချိန်ညှိခြင်း
-                effects_list.append(vfx.ColorX(1.05)) # အလင်းအမှောင်/အရောင် အနည်းငယ်စိုစေရန်
-            
-            clip = clip.with_effects(effects_list)
+                vfx.MultiplySpeed(video_speed_factor)
+            ])
             
             status_text.text("အဆင့် 3/4: အသံအမြန်နှုန်း ညှိခြင်းနှင့် တစ်ထပ်တည်း ချိန်ကိုက်နေပါပြီ...")
             progress_bar.progress(70)
@@ -108,7 +100,7 @@ if uploaded_video is not None and uploaded_audio is not None:
             status_text.text("✨ တည်းဖြတ်မှု အောင်မြင်ပါပြီ!")
             
             # Telegram Noti ပို့ရန်
-            noti_sent = send_telegram_notification("🎬 သင့်ရဲ့ Movie Recap ဗီဒီယို တည်းဖြတ်ပြီးစီးပါပြီ (AI Bypass Version)!")
+            noti_sent = send_telegram_notification("🎬 သင့်ရဲ့ Movie Recap ဗီဒီယို တည်းဖြတ်ပြီးစီးပါပြီ!")
             if noti_sent:
                 st.info("📱 သင့် Telegram ဆီသို့ အကြောင်းကြားစာ (Notification) ပို့ပြီးပါပြီ။")
             
