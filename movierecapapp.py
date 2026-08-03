@@ -15,7 +15,7 @@ uploaded_audio = st.file_uploader("3. မြန်မာအသံ AI Voiceover M
 # အသံ အမြန်နှုန်း ညှိရန်
 speed_factor = st.slider("4. Voiceover အသံ အမြန်နှုန်း (ခပ်သွက်သွက်ပြောရန် 1.1x - 1.3x)", 1.0, 1.5, 1.2)
 
-# Telegram Bot အတွက် အချက်အလက်များ (ထည့်သွင်းပြီးပါပြီ)
+# Telegram Bot အတွက် အချက်အလက်များ
 TELEGRAM_BOT_TOKEN = "8210372462:AAHcx7fDDndpk9RPE5Gsu6f-k2iYC1d0x7Q"
 TELEGRAM_CHAT_ID = "1604996232"
 
@@ -60,14 +60,14 @@ if uploaded_video is not None and uploaded_audio is not None:
             status_text.text("အဆင့် 2/4: Copyright လွတ်အောင် ဗီဒီယိုကို Edit လုပ်နေပါပြီ...")
             progress_bar.progress(40)
             
-            clip = clip.fx(vfx.mirror_x)
-            clip = clip.fx(vfx.resize, width=int(clip.w * 1.05))
+            # MoviePy ဗားရှင်းအသစ်အတွက် Effect များကို တိုက်ရိုက်သုံးရန်
+            clip = clip.with_effects([vfx.MirrorX(), vfx.Resize(width=int(clip.w * 1.05))])
             
             status_text.text("အဆင့် 3/4: အသံအမြန်နှုန်း ညှိခြင်းနှင့် တစ်ထပ်တည်း ချိန်ကိုက်နေပါပြီ...")
             progress_bar.progress(70)
             
             if speed_factor != 1.0:
-                audio_clip = audio_clip.fx(vfx.speedx, speed_factor)
+                audio_clip = audio_clip.with_effects([vfx.MultiplySpeed(speed_factor)])
             
             if audio_clip.duration < clip.duration:
                 clip = clip.subclipped(0, audio_clip.duration)
