@@ -1,4 +1,4 @@
-            import streamlit as st
+import streamlit as st
 import os
 import requests
 from moviepy import VideoFileClip, AudioFileClip, vfx
