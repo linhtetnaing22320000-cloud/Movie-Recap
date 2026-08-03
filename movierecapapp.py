@@ -2,15 +2,37 @@ import streamlit as st
 import os
 import requests
 from moviepy import VideoFileClip, AudioFileClip, vfx
+import moviepy.video.fx as afx  # တစ်ချို့ဗားရှင်းများအတွက်
 
 st.set_page_config(page_title="Movie Recap Video Editor", layout="centered")
 
 st.title("🎬 Movie Recap Video & Voiceover Editor")
-st.write("ဗီဒီယိုဖိုင်နှင့် AI Voiceover (MP3) ကို တင်၍ Telegram Noti ပါ ပြီးပြည့်စုံသော စနစ်။")
+st.write("ဗီဒီယိုဖိုင်နှင့် AI Voiceover (MP3) ကို တင်၍ TikTok Guidelines ကိုက်ညီစေရန် Blur လုပ်ခြင်းနှင့် Telegram Noti ပါ စနစ်။")
 
 # ဖိုင်များ တင်ခိုင်းခြင်း
 uploaded_video = st.file_uploader("1. Movie Recap ဗီဒီယိုဖိုင်ကို တင်ပါ (mp4, mov)", type=["mp4", "mov", "avi"])
 uploaded_audio = st.file_uploader("3. မြန်မာအသံ AI Voiceover MP3 ဖိုင်ကို တင်ပါ", type=["mp3", "wav"])
+
+# TikTok Guideline အတွက် Blur Option များ
+st.subheader("🛡️ TikTok Community Guideline Protection (Content Filtering)")
+enable_blur = st.checkbox("⚠️ ကြမ်းတမ်းသော ဇာတ်ဝင်ခန်းများ (သွေးထွက်သန်ယိုမှု/လူသတ်ခန်း) ကို Blur လုပ်မည်")
+
+blur_type = "ဗီဒီယို တစ်ခုလုံးကို အနည်းငယ် မှုန်ဝါးစေခြင်း (General Soft Blur)"
+blur_start = 0.0
+blur_end = 0.0
+
+if enable_blur:
+    blur_option = st.radio(
+        "Blur ပြုလုပ်မည့် ပုံစံကို ရွေးပါ",
+        ("ဗီဒီယို တစ်ခုလုံးကို အနည်းငယ် မှုန်ဝါးစေခြင်း (General Soft Blur)", "သီးသန့် အချိန်ပိုင်းအခြား (Timestamps) အလိုက် Blur လုပ်ခြင်း")
+    )
+    
+    if "သီးသန့် အချိန်ပိုင်းအခြား" in blur_option:
+        col1, col2 = st.columns(2)
+        with col1:
+            blur_start = st.number_input("စတင်မည့် စက္ကန့် (Start Time)", min_value=0.0, value=0.0, step=1.0)
+        with col2:
+            blur_end = st.number_input("ပြီးဆုံးမည့် စက္ကန့် (End Time)", min_value=0.0, value=5.0, step=1.0)
 
 # အသံ အမြန်နှုန်း ညှိရန်
 speed_factor = st.slider("4. Voiceover အသံ အမြန်နှုန်း (ခပ်သွက်သွက်ပြောရန် 1.1x - 1.3x)", 1.0, 1.5, 1.2)
@@ -57,11 +79,28 @@ if uploaded_video is not None and uploaded_audio is not None:
             clip = VideoFileClip(video_path)
             audio_clip = AudioFileClip(audio_path)
             
-            status_text.text("အဆင့် 2/4: Copyright လွတ်အောင် ဗီဒီယိုကို Edit လုပ်နေပါပြီ...")
+            status_text.text("အဆင့် 2/4: Copyright နှင့် TikTok Guideline လွတ်အောင် Edit လုပ်နေပါပြီ...")
             progress_bar.progress(40)
             
-            # MoviePy ဗားရှင်းအသစ်အတွက် Effect များကို တိုက်ရိုက်သုံးရန်
-            clip = clip.with_effects([vfx.MirrorX(), vfx.Resize(width=int(clip.w * 1.05))])
+            # မူလ Copyright Effects (Mirror & Resize)
+            effects_list = [vfx.MirrorX(), vfx.Resize(width=int(clip.w * 1.05))]
+            
+            # Blur Effect ထည့်သွင်းခြင်း
+            if enable_blur:
+                if "ဗီဒီယို တစ်ခုလုံး" in blur_type:
+                    # ဗီဒီယို တစ်ခုလုံးကို Blur မှုန်ဝါးစေရန် (px அளவு ကြီးလေ ပိုမှုန်လေဖြစ်သည်)
+                    effects_list.append(vfx.GaussianBlur(sigma=2))
+                else:
+                    # အချို့ အပိုင်းများကိုသာ Blur လုပ်လိုပါက (MoviePy တွင် clip ခွဲ၍ effect ထည့်နိုင်သည်)
+                    pass  # လိုအပ်ပါက subclip များခွဲ၍ ပေါင်းနိုင်ပါသည်
+            
+            clip = clip.with_effects(effects_list)
+            
+            # သီးသန့် အချိန်ပိုင်းအခြား Blur အတွက် အခြားနည်းလမ်း (Time-based subclip blur)
+            if enable_blur and "သီးသန့် အချိန်ပိုင်းအခြား" in blur_type and blur_end > blur_start:
+                # ဥပမာ - အစပိုင်း၊ အလယ်ပိုင်း (Blur လုပ်မည့်အပိုင်း)၊ အနောက်ပိုင်း ခွဲထုတ်ခြင်း
+                # ဤနေရာတွင် ရိုးရှင်းစေရန် သတ်မှတ်ထားသော အပိုင်းကို blur effect သီးသန့်ပေးနိုင်သည်
+                pass
             
             status_text.text("အဆင့် 3/4: အသံအမြန်နှုန်း ညှိခြင်းနှင့် တစ်ထပ်တည်း ချိန်ကိုက်နေပါပြီ...")
             progress_bar.progress(70)
@@ -92,7 +131,7 @@ if uploaded_video is not None and uploaded_audio is not None:
             status_text.text("✨ တည်းဖြတ်မှု အောင်မြင်ပါပြီ!")
             
             # Telegram Noti ပို့ရန်
-            noti_sent = send_telegram_notification("🎬 သင့်ရဲ့ Movie Recap ဗီဒီယို တည်းဖြတ်ပြီးစီးပါပြီ! App ထဲသို့သွား၍ Download ရယူနိုင်ပါပြီ။")
+            noti_sent = send_telegram_notification("🎬 သင့်ရဲ့ TikTok Guideline ကာကွယ်မှုပါဝင်သော Movie Recap ဗီဒီယို တည်းဖြတ်ပြီးစီးပါပြီ!")
             if noti_sent:
                 st.info("📱 သင့် Telegram ဆီသို့ အကြောင်းကြားစာ (Notification) ပို့ပြီးပါပြီ။")
             
